@@ -1,30 +1,37 @@
-local util = require("data/util/tf_util")
+local util = require("prototypes.util.tf_util")
 local tools = require("shared").unit_tools
-local path = util.path("data/unit_control/")
+local path = util.path("graphics/unit_control/")
 
 local unit_selection_tool =
 {
   type = "selection-tool",
   name = tools.unit_selection_tool,
   localised_name = {tools.unit_selection_tool},
-  selection_mode = {"same-force", "entity-with-health"},
-  alt_selection_mode = {"same-force", "entity-with-health"},
-  reverse_selection_mode = {"entity-with-health"},
-  --entity_type_filters = {"unit"},
-  --alt_entity_type_filters = {"unit"},
-  selection_cursor_box_type = "copy",
-  alt_selection_cursor_box_type = "pair",
-  reverse_selection_cursor_box_type = "not-allowed",
+  select =
+  {
+    mode = {"same-force", "entity-with-health"},
+    cursor_box_type = "copy",
+    border_color = {g = 1},
+    entity_filters = {}
+  },
+  alt_select =
+  {
+    mode = {"same-force", "entity-with-health"},
+    cursor_box_type = "pair",
+    border_color = {g = 1, b = 1},
+    entity_filters = {}
+  },
+  reverse_select =
+  {
+    mode = {"entity-with-health"},
+    cursor_box_type = "not-allowed",
+    border_color = {a = 1}
+  },
   icon = path.."unit_select.png",
   icon_size = 1,
   stack_size = 1,
   flags = {"not-stackable", "spawnable", "only-in-cursor"},
-  selection_color = {g = 1},
-  alt_selection_color = {g = 1, b = 1},
-  reverse_selection_color = {a = 1},
   draw_label_for_cursor_render = true,
-  entity_filters = {},
-  alt_entity_filters = {},
   mouse_cursor = ""
 }
 
@@ -42,16 +49,22 @@ local unit_move_tool =
   type = "selection-tool",
   name = tools.unit_move_tool,
   localised_name = {tools.unit_move_tool},
-  selection_mode = {"entity-with-health"},
-  alt_selection_mode = {"entity-with-health"},
-  selection_cursor_box_type = "copy",
-  alt_selection_cursor_box_type = "copy",
+  select =
+  {
+    mode = {"entity-with-health"},
+    cursor_box_type = "copy",
+    border_color = {g = 1}
+  },
+  alt_select =
+  {
+    mode = {"entity-with-health"},
+    cursor_box_type = "copy",
+    border_color = {g = 1}
+  },
   icon = path.."unit_move_tool.png",
   icon_size = 1,
   stack_size = 1,
   flags = {"only-in-cursor", "not-stackable", "spawnable"},
-  selection_color = {g = 1},
-  alt_selection_color = {g = 1},
   mouse_cursor = "move-cursor"
 }
 
@@ -69,16 +82,22 @@ local unit_patrol_tool =
   type = "selection-tool",
   name = tools.unit_patrol_tool,
   localised_name = {tools.unit_patrol_tool},
-  selection_mode = {"friend", "enemy"},
-  alt_selection_mode = {"enemy", "friend"},
-  selection_cursor_box_type = "entity",
-  alt_selection_cursor_box_type = "not-allowed",
+  select =
+  {
+    mode = {"friend", "enemy"},
+    cursor_box_type = "entity",
+    border_color = {a = 0}
+  },
+  alt_select =
+  {
+    mode = {"enemy", "friend"},
+    cursor_box_type = "not-allowed",
+    border_color = {a = 0}
+  },
   icon = path.."unit_move_tool.png",
   icon_size = 1,
   stack_size = 1,
   flags = {"only-in-cursor", "not-stackable", "spawnable"},
-  selection_color = {a = 0},
-  alt_selection_color = {a = 0},
   mouse_cursor = "patrol-cursor"
 }
 
@@ -104,16 +123,22 @@ local unit_attack_move_tool =
   type = "selection-tool",
   name = tools.unit_attack_move_tool,
   localised_name = {tools.unit_attack_move_tool},
-  selection_mode = {"not-same-force", "entity-with-health"},
-  alt_selection_mode = {"not-same-force", "entity-with-health"},
-  selection_cursor_box_type = "not-allowed",
-  alt_selection_cursor_box_type = "not-allowed",
+  select =
+  {
+    mode = {"not-same-force", "entity-with-health"},
+    cursor_box_type = "not-allowed",
+    border_color = {r = 1}
+  },
+  alt_select =
+  {
+    mode = {"not-same-force", "entity-with-health"},
+    cursor_box_type = "not-allowed",
+    border_color = {r = 1}
+  },
   icon = path.."unit_attack_move_tool.png",
   icon_size = 1,
   stack_size = 1,
   flags = {"only-in-cursor", "not-stackable", "spawnable"},
-  selection_color = {r = 1},
-  alt_selection_color = {r = 1},
   mouse_cursor = "attack-move-cursor"
 }
 
@@ -123,16 +148,22 @@ local unit_attack_tool =
   type = "selection-tool",
   name = tools.unit_attack_tool,
   localised_name = {tools.unit_attack_tool},
-  selection_mode = {"enemy", "entity-with-force"},
-  alt_selection_mode = {"enemy", "entity-with-force"},
-  selection_cursor_box_type = "not-allowed",
-  alt_selection_cursor_box_type = "not-allowed",
+  select =
+  {
+    mode = {"enemy", "entity-with-force"},
+    cursor_box_type = "not-allowed",
+    border_color = {r = 1}
+  },
+  alt_select =
+  {
+    mode = {"enemy", "entity-with-force"},
+    cursor_box_type = "not-allowed",
+    border_color = {r = 1}
+  },
   icon = path.."unit_attack_tool.png",
   icon_size = 258,
   stack_size = 1,
   flags = {"only-in-cursor", "not-stackable", "spawnable"},
-  selection_color = {r = 1},
-  alt_selection_color = {r = 1},
 }
 
 local unit_force_attack_tool =
@@ -140,16 +171,22 @@ local unit_force_attack_tool =
   type = "selection-tool",
   name = tools.unit_force_attack_tool,
   localised_name = {tools.unit_force_attack_tool},
-  selection_mode = {"not-same-force", "entity-with-health"},
-  alt_selection_mode = {"not-same-force", "entity-with-health"},
-  selection_cursor_box_type = "not-allowed",
-  alt_selection_cursor_box_type = "not-allowed",
+  select =
+  {
+    mode = {"not-same-force", "entity-with-health"},
+    cursor_box_type = "not-allowed",
+    border_color = {r = 1}
+  },
+  alt_select =
+  {
+    mode = {"not-same-force", "entity-with-health"},
+    cursor_box_type = "not-allowed",
+    border_color = {r = 1}
+  },
   icon = path.."unit_attack_tool.png",
   icon_size = 258,
   stack_size = 1,
   flags = {"only-in-cursor", "not-stackable", "spawnable"},
-  selection_color = {r = 1},
-  alt_selection_color = {r = 1},
 }]]
 
 --[[local unit_follow_tool =
@@ -157,16 +194,22 @@ local unit_force_attack_tool =
   type = "selection-tool",
   name = tools.unit_follow_tool,
   localised_name = {tools.unit_follow_tool},
-  selection_mode = {"friend", "any-entity"},
-  alt_selection_mode = {"friend", "any-entity"},
-  selection_cursor_box_type = "copy",
-  alt_selection_cursor_box_type = "copy",
+  select =
+  {
+    mode = {"friend", "any-entity"},
+    cursor_box_type = "copy",
+    border_color = {g = 1}
+  },
+  alt_select =
+  {
+    mode = {"friend", "any-entity"},
+    cursor_box_type = "copy",
+    border_color = {g = 1}
+  },
   icon = path.."unit_attack_tool.png",
   icon_size = 258,
   stack_size = 1,
   flags = {"only-in-cursor", "not-stackable", "spawnable"},
-  selection_color = {g = 1},
-  alt_selection_color = {g = 1},
 }]]
 
 local select_units_shortcut =

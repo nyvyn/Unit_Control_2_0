@@ -1,5 +1,6 @@
 local util = require("script/script_util")
 local tool_names = names.unit_tools
+local selection_tool_name = tool_names.unit_selection_tool
 local script_data =
 {
   button_actions = {},
@@ -72,6 +73,12 @@ local set_command = function(unit_data, command)
   remove_target_indicator(unit_data)
   local unit = unit_data.entity
   if not unit.valid then return end
+  local commandable = unit_data.commandable
+  if not commandable then
+    commandable = unit.commandable
+    unit_data.commandable = commandable
+  end
+  if not commandable then return end
   unit_data.command = command
   unit_data.destination = command.destination
   unit_data.distraction = command.distraction
@@ -80,7 +87,7 @@ local set_command = function(unit_data, command)
   unit.speed = command.speed or unit.prototype.speed
   unit.ai_settings.path_resolution_modifier = command.path_resolution_modifier or -2
   unit.ai_settings.do_separation = command.do_separation or true
-  unit.set_command(command)
+  commandable.set_command(command)
   return add_unit_indicators(unit_data)
 end
 
@@ -88,7 +95,9 @@ local retry_command = function(unit_data)
   --game.print("Unit failed a command, retrying at higher path resolution")
   local unit = unit_data.entity
   unit.ai_settings.path_resolution_modifier = math.min(unit.ai_settings.path_resolution_modifier + 1, 3)
-  return pcall(unit.set_command, unit_data.command)
+  local commandable = unit_data.commandable or unit.commandable
+  if not commandable then return false end
+  return pcall(commandable.set_command, commandable, unit_data.command)
 end
 
 local set_unit_idle
@@ -1928,10 +1937,12 @@ local on_entity_spawned = function(event)
   local unit = event.entity
   if not (source and source.valid and unit and unit.valid) then return end
   if unit.type ~= "unit" then return end
+  local commandable = unit.commandable
+  if not commandable then return end
   --print("Unit deployed: "..unit.name)
   local source_data = script_data.units[source.unit_number]
   if not source_data then
-    unit.set_command({type = defines.command.wander, radius = source.get_radius()})
+    commandable.set_command({type = defines.command.wander, radius = source.get_radius()})
     return
   end
 
@@ -1943,7 +1954,8 @@ local on_entity_spawned = function(event)
     entity = unit,
     command_queue = util.copy(queue),
     idle = false,
-    is_unit = entity.type == "unit"
+    is_unit = unit.type == "unit",
+    commandable = commandable
   }
   script_data.units[unit.unit_number] = unit_data
 
@@ -1985,9 +1997,17 @@ local unit_names
 local get_unit_names = function()
   if unit_names then return unit_names end
   unit_names = {}
-  for name, prototype in pairs (game.item_prototypes["select-units"].entity_filters) do
-    if prototype.type == "unit" then
-      table.insert(unit_names, name)
+  local selection_tool = get_selection_tool_prototype()
+  if not selection_tool then
+    return unit_names
+  end
+  local filters = selection_tool.get_entity_filters and selection_tool:get_entity_filters(defines.selection_mode.select) or nil
+  if not filters then
+    return unit_names
+  end
+  for _, prototype in pairs(filters) do
+    if prototype and prototype.type == "unit" then
+      table.insert(unit_names, prototype.name)
     end
   end
   return unit_names
@@ -2059,7 +2079,8 @@ local left_click = function(event, shift)
   end
 
   if set_cursor_to_select(player) then
-    player.start_selection(event.cursor_position, (shift and "alternative-select") or "select")
+    local mode = shift and defines.selection_mode.alt_select or defines.selection_mode.select
+    player.start_selection(event.cursor_position, mode)
   end
 end
 
@@ -2139,6 +2160,59 @@ end
 
 local unit_control = {}
 
+local get_game_member = function(name)
+  if not game then return nil end
+  local ok, value = pcall(function()
+    return game[name]
+  end)
+  if ok then
+    return value
+  end
+end
+
+local get_selection_tool_prototype = function()
+  local prototype
+  if prototypes and prototypes.get_item_filtered then
+    local ok, items = pcall(prototypes.get_item_filtered, prototypes, {{filter = "name", name = selection_tool_name}})
+    if ok and items then
+      prototype = items[selection_tool_name]
+      if not prototype then
+        local _, first = next(items)
+        prototype = first
+      end
+    end
+  end
+  if not prototype then
+    local getter = get_game_member("get_filtered_item_prototypes")
+    if getter then
+      local ok, items = pcall(getter, game, {{filter = "name", name = selection_tool_name}})
+      if ok and items then
+        prototype = items[selection_tool_name]
+        if not prototype then
+          local _, first = next(items)
+          prototype = first
+        end
+      end
+    end
+  end
+  if not prototype then
+    local item_prototypes = get_game_member("item_prototypes")
+    if item_prototypes then
+      prototype = item_prototypes[selection_tool_name]
+    end
+  end
+  return prototype
+end
+
+local get_persistence = function()
+  local persisted = rawget(_G, "storage") or rawget(_G, "global")
+  if not persisted then
+    persisted = {}
+    rawset(_G, "global", persisted)
+  end
+  return persisted
+end
+
 unit_control.events =
 {
   [defines.events.on_tick] = on_tick,
@@ -2183,7 +2257,8 @@ unit_control.events =
 }
 
 unit_control.on_init = function()
-  global.unit_control = global.unit_control or script_data
+  local persisted = get_persistence()
+  persisted.unit_control = persisted.unit_control or script_data
   set_map_settings()
 end
 
@@ -2195,7 +2270,9 @@ unit_control.on_configuration_changed = function(configuration_changed_data)
 end
 
 unit_control.on_load = function()
-  script_data = global.unit_control or script_data
+  script_data = get_persistence().unit_control or script_data
 end
+
+unit_control.get_selection_tool_prototype = get_selection_tool_prototype
 
 return unit_control
