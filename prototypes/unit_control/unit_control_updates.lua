@@ -1,6 +1,6 @@
-local util = require("data/util/tf_util")
+local util = require("prototypes.util.tf_util")
 local tools = require("shared").unit_tools
-local path = util.path("data/unit_control/")
+local path = util.path("graphics/unit_control/")
 
 local selection_filter = {}
 
@@ -29,5 +29,11 @@ if units then
 end
 
 local unit_tool = data.raw["selection-tool"][tools.unit_selection_tool]
-unit_tool.entity_filters = selection_filter
-unit_tool.alt_entity_filters = selection_filter
+if unit_tool then
+  if unit_tool.select then
+    unit_tool.select.entity_filters = selection_filter
+  end
+  if unit_tool.alt_select then
+    unit_tool.alt_select.entity_filters = selection_filter
+  end
+end

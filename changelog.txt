@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.0
+Date: 2025-11-01
+  Changes:
+    - Update selection tool prototypes to the Factorio 2.0 SelectionModeData schema.
+    - Adjust runtime selection filter access to the new defines.selection_mode helpers.
+    - Use the 2.0 prototypes API for selection tool lookups at runtime.
+    - Update cursor selection to use defines.selection_mode constants.
+    - Reorganize data-stage files into prototypes/ and move assets under graphics/ to follow 2.0 conventions.
+    - Store runtime state via the new storage/global compatibility helper.
+    - Ignore non-commandable entities raised by deployers to avoid 2.0 runtime errors.
+---------------------------------------------------------------------------------------------------
 Version: 0.3.11
 Date: 2021-08-22
   Changes:

@@ -1,1 +1,1 @@
-require "data/unit_control/unit_control_updates"
+require("prototypes.unit_control.unit_control_updates")

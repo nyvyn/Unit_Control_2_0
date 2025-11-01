@@ -6,15 +6,32 @@ local script_data =
   tick_check = {}
 }
 
+local get_persistence = function()
+  local persisted = rawget(_G, "storage") or rawget(_G, "global")
+  if not persisted then
+    persisted = {}
+    rawset(_G, "global", persisted)
+  end
+  return persisted
+end
+
 local deployer_map
 local get_deployer_map = function()
   if deployer_map then
     return deployer_map
   end
   deployer_map = {}
-  for name, prototype in pairs (game.item_prototypes["select-units"].entity_filters) do
-    if prototype.crafting_speed then
-      deployer_map[name] = true
+  local selection_tool = unit_control.get_selection_tool_prototype and unit_control.get_selection_tool_prototype()
+  if not selection_tool then
+    return deployer_map
+  end
+  local filters = selection_tool.get_entity_filters and selection_tool:get_entity_filters(defines.selection_mode.select) or nil
+  if not filters then
+    return deployer_map
+  end
+  for _, prototype in pairs(filters) do
+    if prototype and prototype.crafting_speed then
+      deployer_map[prototype.name] = true
     end
   end
   return deployer_map
@@ -163,13 +180,14 @@ unit_deployment.events =
 }
 
 unit_deployment.on_init = function()
-  global.unit_deployment = global.unit_deployment or script_data
+  local persisted = get_persistence()
+  persisted.unit_deployment = persisted.unit_deployment or script_data
   reinit_all_deployers()
   setup_spawn_event()
 end
 
 unit_deployment.on_load = function()
-  script_data = global.unit_deployment or script_data
+  script_data = get_persistence().unit_deployment or script_data
   setup_spawn_event()
 end
 

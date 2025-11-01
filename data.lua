@@ -1,3 +1,3 @@
 names = require("shared")
-require "data/unit_control/unit_control"
-require("data/hotkeys")
+require("prototypes.unit_control.unit_control")
+require("prototypes.hotkeys")
